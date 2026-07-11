@@ -1,10 +1,12 @@
 title: AXIS Magazine 中文翻譯
 description: 每日翻譯日本設計雜誌 AXIS Magazine 的精選文章，繁體中文
 lang: zh-TW
-theme: minima
 plugins:
   - jekyll-feed
 permalink: /:categories/:year-:month-:day-:title/
-show_excerpts: true
-header_pages:
-  - categories.md
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post

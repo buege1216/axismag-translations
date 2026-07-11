@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.excerpt | default: site.description | strip_html | truncate: 150 }}">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+</head>
+<body>
+  <header class="site-header">
+    <a href="{{ '/' | relative_url }}" class="site-title">AXIS <span>中文翻譯</span></a>
+    <nav>
+      <a href="{{ '/' | relative_url }}">最新文章</a>
+      <a href="{{ '/categories/' | relative_url }}">分類瀏覽</a>
+    </nav>
+  </header>
+
+  {{ content }}
+
+  <footer class="site-footer">
+    每日自動翻譯 <a href="https://www.axismag.jp/" target="_blank" rel="noopener">AXIS Magazine</a> 精選文章，繁體中文。內容為機器翻譯，版權屬原作者所有。
+  </footer>
+</body>
+</html>

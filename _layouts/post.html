@@ -1,0 +1,20 @@
+---
+layout: default
+---
+{% if page.image %}
+<div class="article-hero"><img src="{{ page.image }}" alt="{{ page.title }}"></div>
+{% endif %}
+
+<article>
+  <div class="article-header">
+    {% if page.categories.first %}<div class="eyebrow">{{ page.categories.first }}</div>{% endif %}
+    <h1>{{ page.title }}</h1>
+    <div class="meta">{{ page.date | date: "%Y-%m-%d" }}{% if page.original_title %} ・ 原標題：{{ page.original_title }}{% endif %}</div>
+    {% if page.source %}<div class="original-link"><a href="{{ page.source }}" target="_blank" rel="noopener">閱讀 AXIS 原文 →</a></div>{% endif %}
+  </div>
+  <div class="article-body">
+    {{ content }}
+  </div>
+</article>
+
+<div class="back-link"><a href="{{ '/' | relative_url }}">← 回到最新文章</a></div>
