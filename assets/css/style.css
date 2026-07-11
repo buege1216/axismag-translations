@@ -212,6 +212,19 @@ img { max-width: 100%; height: auto; display: block; }
   margin-top: 2em;
 }
 
+.comments-section {
+  max-width: var(--max-width);
+  margin: 0 auto 40px;
+  padding: 24px 24px 0;
+  border-top: 1px solid var(--line);
+}
+
+.comments-hint {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
 .back-link {
   display: block;
   max-width: var(--max-width);
