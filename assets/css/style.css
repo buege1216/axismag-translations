@@ -1,0 +1,230 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500&display=swap');
+
+:root {
+  --ink: #1a1a1a;
+  --paper: #fdfcf9;
+  --muted: #6b6b6b;
+  --line: #e5e2da;
+  --accent: #b3491f;
+  --max-width: 760px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.9;
+}
+
+a { color: inherit; text-decoration: none; }
+a:hover { color: var(--accent); }
+
+img { max-width: 100%; height: auto; display: block; }
+
+.site-header {
+  border-bottom: 1px solid var(--line);
+  padding: 28px 24px;
+  text-align: center;
+}
+
+.site-header .site-title {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  letter-spacing: 0.08em;
+}
+
+.site-header .site-title span {
+  color: var(--accent);
+}
+
+.site-header nav {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.site-header nav a {
+  margin: 0 10px;
+  border-bottom: 1px solid transparent;
+}
+
+.site-header nav a:hover {
+  border-bottom-color: var(--accent);
+}
+
+.wrap {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* ---- Home: magazine grid ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 36px;
+  padding: 40px 0 60px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+}
+
+.card .thumb {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #eee;
+  border-radius: 2px;
+  margin-bottom: 14px;
+}
+
+.card .thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.card:hover .thumb img {
+  transform: scale(1.04);
+}
+
+.card .eyebrow {
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.card .card-title {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.card .meta {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ---- Categories page ---- */
+.category-block {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.category-block h2 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.category-block ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-block li {
+  padding: 10px 0;
+  border-top: 1px dotted var(--line);
+}
+
+.category-block li:first-child { border-top: none; }
+
+/* ---- Article / immersive reading ---- */
+.article-hero {
+  width: 100%;
+  max-height: 520px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.article-hero img {
+  width: 100%;
+  object-fit: cover;
+}
+
+.article-header {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 44px 24px 0;
+  text-align: center;
+}
+
+.article-header .eyebrow {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.article-header h1 {
+  font-family: 'Noto Serif TC', serif;
+  font-weight: 700;
+  font-size: 2rem;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.article-header .meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 8px;
+}
+
+.article-header .original-link {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+
+.article-body {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 10px 24px 60px;
+  font-size: 1.08rem;
+}
+
+.article-body p {
+  margin: 0 0 1.6em;
+}
+
+.article-body img {
+  margin: 2em 0;
+  border-radius: 2px;
+}
+
+.article-body h2 {
+  font-family: 'Noto Serif TC', serif;
+  margin-top: 2em;
+}
+
+.back-link {
+  display: block;
+  max-width: var(--max-width);
+  margin: 0 auto 60px;
+  padding: 0 24px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.site-footer {
+  text-align: center;
+  padding: 30px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}

@@ -1,0 +1,19 @@
+---
+layout: default
+---
+<div class="wrap">
+  <div class="grid">
+    {% for post in site.posts %}
+      <a class="card" href="{{ post.url | relative_url }}">
+        {% if post.image %}
+          <div class="thumb"><img src="{{ post.image }}" alt="{{ post.title }}" loading="lazy"></div>
+        {% endif %}
+        {% if post.categories.first %}
+          <div class="eyebrow">{{ post.categories.first }}</div>
+        {% endif %}
+        <div class="card-title">{{ post.title }}</div>
+        <div class="meta">{{ post.date | date: "%Y-%m-%d" }}</div>
+      </a>
+    {% endfor %}
+  </div>
+</div>
