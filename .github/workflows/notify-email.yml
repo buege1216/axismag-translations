@@ -1,0 +1,101 @@
+name: Notify new articles by email
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "_posts/**"
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find new posts and build email body
+        id: build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execSync } = require('child_process');
+            const fs = require('fs');
+
+            const before = context.payload.before;
+            const after = context.payload.after;
+            const zero = '0000000000000000000000000000000000000000';
+
+            let files = [];
+            try {
+              const range = (before === zero) ? `${after}` : `${before}..${after}`;
+              const cmd = (before === zero)
+                ? `git diff-tree --no-commit-id --name-only -r --diff-filter=A ${after} -- _posts/`
+                : `git diff --name-only --diff-filter=A ${before} ${after} -- _posts/`;
+              const out = execSync(cmd).toString().trim();
+              files = out ? out.split('\n').filter(Boolean) : [];
+            } catch (e) {
+              core.info('diff failed: ' + e.message);
+            }
+
+            if (files.length === 0) {
+              core.setOutput('has_new', 'false');
+              return;
+            }
+
+            const baseUrl = 'https://buege1216.github.io/axismag-translations';
+            const items = [];
+
+            for (const f of files) {
+              if (!fs.existsSync(f)) continue;
+              const content = fs.readFileSync(f, 'utf8');
+              const fm = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+              if (!fm) continue;
+              const block = fm[1];
+              const get = (key) => {
+                const m = block.match(new RegExp(`^${key}:\\s*(.*)$`, 'm'));
+                return m ? m[1].trim().replace(/^"|"$/g, '') : '';
+              };
+              const title = get('title');
+              const category = get('categories').replace(/[\[\]]/g, '').trim();
+              const base = f.replace('_posts/', '').replace(/\.md$/, '');
+              const parts = base.split('-');
+              const y = parts[0], m = parts[1], d = parts[2];
+              const slug = parts.slice(3).join('-');
+              const url = `${baseUrl}/${category}/${y}-${m}-${d}-${slug}/`;
+              items.push({ title, url, category });
+            }
+
+            if (items.length === 0) {
+              core.setOutput('has_new', 'false');
+              return;
+            }
+
+            const li = items.map(i =>
+              `<li style="margin-bottom:10px;"><a href="${i.url}" style="font-size:16px;">${i.title}</a> <span style="color:#888;font-size:13px;">（${i.category}）</span></li>`
+            ).join('\n');
+
+            const html = `
+              <div style="font-family:sans-serif;max-width:600px;margin:0 auto;">
+                <h2>AXIS 雜誌翻譯・今日新文章（${items.length} 篇）</h2>
+                <ul style="list-style:none;padding:0;">${li}</ul>
+                <p><a href="${baseUrl}">前往網站閱讀所有文章 →</a></p>
+              </div>
+            `;
+
+            fs.writeFileSync('email_body.html', html);
+            core.setOutput('has_new', 'true');
+            core.setOutput('count', String(items.length));
+
+      - name: Send email
+        if: steps.build.outputs.has_new == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "AXIS 雜誌翻譯 - 今日新文章（${{ steps.build.outputs.count }} 篇）"
+          to: ${{ secrets.MAIL_TO }}
+          from: AXIS 翻譯通知 <${{ secrets.MAIL_USERNAME }}>
+          html_body: file://email_body.html
