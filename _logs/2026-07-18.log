@@ -1,0 +1,18 @@
+﻿===== 2026-07-18 07:00:01 開始執行 =====
+Both frontmatter blocks are clean (no stray straight double-quotes inside the field values). Two articles are done.
+
+## 摘要
+
+這次處理了 2 篇新文章（首頁其餘文章都已在 manifest 中，另跳過一篇日期不明的舊促銷文）：
+
+1. **產後照護旅館 Villa Mom（乃村工藝社設計）**
+   檔案：`_posts/2026-07-18-717393.md`｜分類：interior
+   圖片：成功取得 10 張（首圖 + 9 張內文圖），均已對應段落插入
+
+2. **福岡市博物館幽靈・妖怪畫收藏展**
+   檔案：`_posts/2026-07-18-713144.md`｜分類：exhibition
+   圖片：成功取得多張，已排除頁首 logo 與頁尾廣告橫幅，保留 5 張展品圖對應段落插入
+
+`_manifest.json` 已加入這兩篇網址。過程中發現第一篇 `original_title` 因原文含半形雙引號導致 YAML 會解析失敗，已改用全形彎引號「"…"」修正並確認前言乾淨。git commit/push 依規定不在此處執行。
+===== 2026-07-18 07:03:14 執行結束 =====
+===== 2026-07-18 07:03:14 開始同步網站 =====
