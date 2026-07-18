@@ -17,23 +17,193 @@ layout: default
   </div>
 </article>
 
-<div class="comments-section">
-  <p class="comments-hint">登入 GitHub 後可在下方留言；點 👀 表示「已讀」，留言與已讀狀態會自動同步到所有裝置。</p>
-  <script src="https://giscus.app/client.js"
-    data-repo="buege1216/axismag-translations"
-    data-repo-id="R_kgDOTU7ETQ"
-    data-category="General"
-    data-category-id="DIC_kwDOTU7ETc4DA9Uv"
-    data-mapping="pathname"
-    data-strict="0"
-    data-reactions-enabled="1"
-    data-emit-metadata="0"
-    data-input-position="top"
-    data-theme="preferred_color_scheme"
-    data-lang="zh-TW"
-    crossorigin="anonymous"
-    async>
-  </script>
+<div class="back-link"><a href="{{ '/' | relative_url }}">← 回到最新文章</a></div>
+
+<button type="button" class="comments-toggle" id="commentsToggle" aria-expanded="false" aria-controls="commentsPanel">
+  <span class="comments-toggle-icon">💬</span> 留言
+</button>
+
+<div class="comments-panel" id="commentsPanel" aria-hidden="true">
+  <div class="comments-panel-header" id="commentsPanelHeader" title="按住拖曳移動">
+    <span>⠿ 留言</span>
+    <button type="button" class="comments-close" id="commentsClose" aria-label="關閉留言">✕</button>
+  </div>
+  <div class="comments-panel-body">
+    <p class="comments-hint">登入 GitHub 後可在下方留言；點 👀 表示「已讀」，留言與已讀狀態會自動同步到所有裝置。按住上面的標題列可以拖到任何你想放的位置，不想看就按 ✕ 關掉。</p>
+    <script src="https://giscus.app/client.js"
+      data-repo="buege1216/axismag-translations"
+      data-repo-id="R_kgDOTU7ETQ"
+      data-category="General"
+      data-category-id="DIC_kwDOTU7ETc4DA9Uv"
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="zh-TW"
+      crossorigin="anonymous"
+      async>
+    </script>
+  </div>
+  <div class="comments-resize-handle" id="commentsResizeHandle" title="拖曳調整大小"></div>
 </div>
 
-<div class="back-link"><a href="{{ '/' | relative_url }}">← 回到最新文章</a></div>
+<script>
+(function () {
+  var toggle = document.getElementById('commentsToggle');
+  var closeBtn = document.getElementById('commentsClose');
+  var panel = document.getElementById('commentsPanel');
+  var header = document.getElementById('commentsPanelHeader');
+  var resizeHandle = document.getElementById('commentsResizeHandle');
+  if (!toggle || !panel || !header) return;
+
+  var POS_KEY = 'axismagCommentsPos';
+  var SIZE_KEY = 'axismagCommentsSize';
+  var MIN_W = 240, MIN_H = 200;
+
+  function clampToViewport() {
+    var rect = panel.getBoundingClientRect();
+    var maxLeft = Math.max(8, window.innerWidth - rect.width - 8);
+    var maxTop = Math.max(8, window.innerHeight - rect.height - 8);
+    panel.style.left = Math.min(Math.max(rect.left, 8), maxLeft) + 'px';
+    panel.style.top = Math.min(Math.max(rect.top, 8), maxTop) + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  }
+
+  function applyStoredPosition() {
+    var raw;
+    try { raw = localStorage.getItem(POS_KEY); } catch (e) { return; }
+    if (!raw) return;
+    try {
+      var pos = JSON.parse(raw);
+      if (typeof pos.left === 'number' && typeof pos.top === 'number') {
+        panel.style.left = pos.left + 'px';
+        panel.style.top = pos.top + 'px';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+      }
+    } catch (e) {}
+  }
+
+  function savePosition() {
+    var rect = panel.getBoundingClientRect();
+    try { localStorage.setItem(POS_KEY, JSON.stringify({ left: rect.left, top: rect.top })); } catch (e) {}
+  }
+
+  function applyStoredSize() {
+    var raw;
+    try { raw = localStorage.getItem(SIZE_KEY); } catch (e) { return; }
+    if (!raw) return;
+    try {
+      var size = JSON.parse(raw);
+      if (typeof size.width === 'number' && typeof size.height === 'number') {
+        panel.style.width = size.width + 'px';
+        panel.style.height = size.height + 'px';
+      }
+    } catch (e) {}
+  }
+
+  function saveSize() {
+    var rect = panel.getBoundingClientRect();
+    try { localStorage.setItem(SIZE_KEY, JSON.stringify({ width: rect.width, height: rect.height })); } catch (e) {}
+  }
+
+  applyStoredPosition();
+  applyStoredSize();
+
+  function setOpen(open) {
+    panel.classList.toggle('open', open);
+    panel.setAttribute('aria-hidden', String(!open));
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.classList.toggle('is-active', open);
+    if (open) clampToViewport();
+  }
+
+  toggle.addEventListener('click', function () {
+    setOpen(!panel.classList.contains('open'));
+  });
+  closeBtn.addEventListener('click', function () { setOpen(false); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') setOpen(false);
+  });
+
+  var dragging = false, startX, startY, startLeft, startTop;
+
+  header.addEventListener('pointerdown', function (e) {
+    if (e.target.closest('.comments-close')) return;
+    var rect = panel.getBoundingClientRect();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = rect.left;
+    startTop = rect.top;
+    panel.style.left = startLeft + 'px';
+    panel.style.top = startTop + 'px';
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+    panel.classList.add('dragging');
+    header.setPointerCapture(e.pointerId);
+  });
+
+  header.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    var rect = panel.getBoundingClientRect();
+    var newLeft = startLeft + (e.clientX - startX);
+    var newTop = startTop + (e.clientY - startY);
+    newLeft = Math.min(Math.max(newLeft, 4), window.innerWidth - rect.width - 4);
+    newTop = Math.min(Math.max(newTop, 4), window.innerHeight - rect.height - 4);
+    panel.style.left = newLeft + 'px';
+    panel.style.top = newTop + 'px';
+  });
+
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    panel.classList.remove('dragging');
+    savePosition();
+  }
+  header.addEventListener('pointerup', endDrag);
+  header.addEventListener('pointercancel', endDrag);
+
+  if (resizeHandle) {
+    var resizing = false, startW, startH, startPX, startPY;
+
+    resizeHandle.addEventListener('pointerdown', function (e) {
+      var rect = panel.getBoundingClientRect();
+      resizing = true;
+      startW = rect.width;
+      startH = rect.height;
+      startPX = e.clientX;
+      startPY = e.clientY;
+      panel.style.left = rect.left + 'px';
+      panel.style.top = rect.top + 'px';
+      panel.style.right = 'auto';
+      panel.style.bottom = 'auto';
+      panel.classList.add('resizing');
+      resizeHandle.setPointerCapture(e.pointerId);
+    });
+
+    resizeHandle.addEventListener('pointermove', function (e) {
+      if (!resizing) return;
+      var rect = panel.getBoundingClientRect();
+      var maxW = window.innerWidth - rect.left - 4;
+      var maxH = window.innerHeight - rect.top - 4;
+      var newW = Math.min(Math.max(startW + (e.clientX - startPX), MIN_W), maxW);
+      var newH = Math.min(Math.max(startH + (e.clientY - startPY), MIN_H), maxH);
+      panel.style.width = newW + 'px';
+      panel.style.height = newH + 'px';
+    });
+
+    function endResize() {
+      if (!resizing) return;
+      resizing = false;
+      panel.classList.remove('resizing');
+      saveSize();
+    }
+    resizeHandle.addEventListener('pointerup', endResize);
+    resizeHandle.addEventListener('pointercancel', endResize);
+  }
+})();
+</script>
