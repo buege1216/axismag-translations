@@ -29,7 +29,19 @@ layout: default
     <button type="button" class="comments-close" id="commentsClose" aria-label="關閉留言">✕</button>
   </div>
   <div class="comments-panel-body">
-    <p class="comments-hint">登入 GitHub 後可在下方留言；點 👀 表示「已讀」，留言與已讀狀態會自動同步到所有裝置。按住上面的標題列可以拖到任何你想放的位置，不想看就按 ✕ 關掉。</p>
+    <div class="comments-read-row">
+      <span class="comments-read-label">已讀
+        <button type="button" class="read-switch" id="readSwitch" role="switch" aria-checked="false" aria-busy="false" aria-label="標記這篇文章已讀"><span class="read-switch-knob"></span></button>
+      </span>
+      <button type="button" class="read-reset-link" id="readResetLink" hidden>重設權杖</button>
+    </div>
+    <div class="read-token-setup" id="readTokenSetup" hidden>
+      <p class="read-token-hint">已讀開關要連到你的 GitHub 帳號才能跨裝置同步。<a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">點這裡申請一把權杖 →</a><br>Repository access 選 <b>Only select repositories → axismag-translations</b>，Permissions 裡把 <b>Discussions</b> 設成 <b>Read and write</b>，其他保持預設就好。申請完把權杖貼在下面。</p>
+      <input type="password" id="readTokenInput" class="read-token-input" placeholder="貼上權杖(ghp_... 或 github_pat_...)" autocomplete="off">
+      <button type="button" id="readTokenSave" class="read-token-save">儲存</button>
+      <p class="read-token-msg" id="readTokenMsg"></p>
+    </div>
+    <p class="comments-hint">登入 GitHub 後可在下方留言。按住上面的標題列可以拖到任何你想放的位置，不想看就按 ✕ 關掉。</p>
     <script src="https://giscus.app/client.js"
       data-repo="buege1216/axismag-translations"
       data-repo-id="R_kgDOTU7ETQ"
@@ -37,7 +49,7 @@ layout: default
       data-category-id="DIC_kwDOTU7ETc4DA9Uv"
       data-mapping="pathname"
       data-strict="0"
-      data-reactions-enabled="1"
+      data-reactions-enabled="0"
       data-emit-metadata="0"
       data-input-position="top"
       data-theme="preferred_color_scheme"
@@ -204,6 +216,179 @@ layout: default
     }
     resizeHandle.addEventListener('pointerup', endResize);
     resizeHandle.addEventListener('pointercancel', endResize);
+  }
+
+  // ---- 已讀開關(直接用 GitHub GraphQL 讀寫留言討論串的 👀 反應，跨裝置同步) ----
+  var readSwitch = document.getElementById('readSwitch');
+  var readResetLink = document.getElementById('readResetLink');
+  var tokenSetup = document.getElementById('readTokenSetup');
+  var tokenInput = document.getElementById('readTokenInput');
+  var tokenSave = document.getElementById('readTokenSave');
+  var tokenMsg = document.getElementById('readTokenMsg');
+
+  if (readSwitch && tokenSetup) {
+    var TOKEN_KEY = 'axismagGithubToken';
+    var REPO_NWO = 'buege1216/axismag-translations';
+    var REPOSITORY_ID = 'R_kgDOTU7ETQ';
+    var CATEGORY_ID = 'DIC_kwDOTU7ETc4DA9Uv';
+    var GQL_URL = 'https://api.github.com/graphql';
+    var pagePath = location.pathname;
+    var discussionCacheKey = 'axismagDiscussionId:' + pagePath;
+    var discussionId = null;
+
+    var SEARCH_QUERY = 'query($q: String!) { search(query: $q, type: DISCUSSION, first: 10) { nodes { ... on Discussion { id title reactionGroups { content viewerHasReacted } } } } }';
+    var GET_BY_ID_QUERY = 'query($id: ID!) { node(id: $id) { ... on Discussion { id reactionGroups { content viewerHasReacted } } } }';
+    var CREATE_MUTATION = 'mutation($repo: ID!, $cat: ID!, $title: String!, $body: String!) { createDiscussion(input: {repositoryId: $repo, categoryId: $cat, title: $title, body: $body}) { discussion { id reactionGroups { content viewerHasReacted } } } }';
+    var ADD_REACTION = 'mutation($id: ID!) { addReaction(input: {subjectId: $id, content: EYES}) { reaction { content } } }';
+    var REMOVE_REACTION = 'mutation($id: ID!) { removeReaction(input: {subjectId: $id, content: EYES}) { reaction { content } } }';
+
+    function getToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; } }
+    function setToken(t) { try { localStorage.setItem(TOKEN_KEY, t); } catch (e) {} }
+    function clearToken() { try { localStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+
+    function gql(query, variables, token) {
+      return fetch(GQL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ query: query, variables: variables })
+      }).then(function (res) {
+        if (res.status === 401) throw new Error('TOKEN_INVALID');
+        return res.json();
+      }).then(function (json) {
+        if (json.errors && json.errors.length) {
+          var msg = json.errors.map(function (e) { return e.message; }).join('; ');
+          if (/bad credentials/i.test(msg)) throw new Error('TOKEN_INVALID');
+          throw new Error(msg);
+        }
+        return json.data;
+      });
+    }
+
+    function reactedFrom(groups) {
+      for (var i = 0; i < (groups || []).length; i++) {
+        if (groups[i].content === 'EYES') return groups[i].viewerHasReacted;
+      }
+      return false;
+    }
+
+    function findDiscussion(token) {
+      var q = 'repo:' + REPO_NWO + ' in:title "' + pagePath + '"';
+      return gql(SEARCH_QUERY, { q: q }, token).then(function (data) {
+        var nodes = (data.search && data.search.nodes) || [];
+        for (var i = 0; i < nodes.length; i++) {
+          if (nodes[i].title === pagePath) return nodes[i];
+        }
+        return null;
+      });
+    }
+
+    function createDiscussion(token) {
+      var vars = { repo: REPOSITORY_ID, cat: CATEGORY_ID, title: pagePath, body: '討論串：' + pagePath };
+      return gql(CREATE_MUTATION, vars, token).then(function (data) { return data.createDiscussion.discussion; });
+    }
+
+    function loadState(token) {
+      var cachedId;
+      try { cachedId = localStorage.getItem(discussionCacheKey); } catch (e) {}
+      if (cachedId) {
+        discussionId = cachedId;
+        return gql(GET_BY_ID_QUERY, { id: cachedId }, token).then(function (data) {
+          if (!data.node) {
+            try { localStorage.removeItem(discussionCacheKey); } catch (e) {}
+            discussionId = null;
+            return loadState(token);
+          }
+          return reactedFrom(data.node.reactionGroups);
+        });
+      }
+      return findDiscussion(token).then(function (d) {
+        if (d) {
+          discussionId = d.id;
+          try { localStorage.setItem(discussionCacheKey, d.id); } catch (e) {}
+          return reactedFrom(d.reactionGroups);
+        }
+        return createDiscussion(token).then(function (d2) {
+          discussionId = d2.id;
+          try { localStorage.setItem(discussionCacheKey, d2.id); } catch (e) {}
+          return reactedFrom(d2.reactionGroups);
+        });
+      });
+    }
+
+    function setSwitchChecked(checked) {
+      readSwitch.setAttribute('aria-checked', String(checked));
+      readSwitch.setAttribute('aria-busy', 'false');
+    }
+
+    function setBusy(busy) {
+      readSwitch.setAttribute('aria-busy', String(busy));
+    }
+
+    function showTokenSetup(message) {
+      tokenSetup.hidden = false;
+      readSwitch.hidden = true;
+      readResetLink.hidden = true;
+      tokenMsg.textContent = message || '';
+    }
+
+    function showSwitch() {
+      tokenSetup.hidden = true;
+      readSwitch.hidden = false;
+      readResetLink.hidden = false;
+    }
+
+    function handleTokenInvalid() {
+      clearToken();
+      showTokenSetup('權杖失效了，請重新申請、貼上一次。');
+    }
+
+    function init() {
+      var token = getToken();
+      if (!token) { showTokenSetup(); return; }
+      showSwitch();
+      setBusy(true);
+      loadState(token).then(function (checked) {
+        setSwitchChecked(checked);
+      }).catch(function (err) {
+        if (err.message === 'TOKEN_INVALID') { handleTokenInvalid(); return; }
+        setBusy(false);
+      });
+    }
+
+    tokenSave.addEventListener('click', function () {
+      var t = tokenInput.value.trim();
+      if (!t) return;
+      setToken(t);
+      tokenInput.value = '';
+      tokenMsg.textContent = '檢查中…';
+      init();
+    });
+
+    readResetLink.addEventListener('click', function () {
+      clearToken();
+      try {
+        Object.keys(localStorage).forEach(function (k) {
+          if (k.indexOf('axismagDiscussionId:') === 0) localStorage.removeItem(k);
+        });
+      } catch (e) {}
+      showTokenSetup();
+    });
+
+    readSwitch.addEventListener('click', function () {
+      if (readSwitch.getAttribute('aria-busy') === 'true' || !discussionId) return;
+      var token = getToken();
+      if (!token) { showTokenSetup(); return; }
+      var wasOn = readSwitch.getAttribute('aria-checked') === 'true';
+      setBusy(true);
+      gql(wasOn ? REMOVE_REACTION : ADD_REACTION, { id: discussionId }, token).then(function () {
+        setSwitchChecked(!wasOn);
+      }).catch(function (err) {
+        if (err.message === 'TOKEN_INVALID') { handleTokenInvalid(); return; }
+        setBusy(false);
+      });
+    });
+
+    init();
   }
 })();
 </script>
