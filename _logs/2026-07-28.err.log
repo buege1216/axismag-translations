@@ -1,0 +1,2 @@
+Permission allow rule (C:\Users\Buege\.claude\settings.json): Write(G:\\我的雲端硬碟\\Obsidian\\200-專業技能\\230-AXIS雜誌\\**) is not matched by file permission checks — only Edit(path) rules are. Use Edit(G:\\我的雲端硬碟\\Obsidian\\200-專業技能\\230-AXIS雜誌\\**) instead (Edit rules cover all file-editing tools).
+Permission allow rule (C:\Users\Buege\.claude\settings.json): Write(C:\\Buege\\Claude\\axismag-site\\**) is not matched by file permission checks — only Edit(path) rules are. Use Edit(C:\\Buege\\Claude\\axismag-site\\**) instead (Edit rules cover all file-editing tools).
