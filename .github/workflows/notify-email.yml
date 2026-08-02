@@ -87,6 +87,39 @@ jobs:
             core.setOutput('has_new', 'true');
             core.setOutput('count', String(items.length));
 
+      - name: Wait for GitHub Pages deployment
+        if: steps.build.outputs.has_new == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = context.sha;
+            const timeoutMs = 5 * 60 * 1000;
+            const intervalMs = 10 * 1000;
+            const start = Date.now();
+
+            while (Date.now() - start < timeoutMs) {
+              const { data: deployments } = await github.rest.repos.listDeployments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha,
+                environment: 'github-pages',
+              });
+
+              if (deployments.length > 0) {
+                const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployments[0].id,
+                });
+                if (statuses.some(s => s.state === 'success')) {
+                  core.info('Pages deployment confirmed live for ' + sha);
+                  return;
+                }
+              }
+              await new Promise(r => setTimeout(r, intervalMs));
+            }
+            core.warning('Timed out waiting for Pages deployment, sending email anyway.');
+
       - name: Send email
         if: steps.build.outputs.has_new == 'true'
         uses: dawidd6/action-send-mail@v3
