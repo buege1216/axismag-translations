@@ -35,7 +35,7 @@ function escapeHtml(s) {
 // 只需要處理 axismag-daily skill 固定會產生的幾種寫法：粗體、連結、圖片、條列、引言區塊。
 function inline(text) {
   let t = escapeHtml(text);
-  t = t.replace(/!\[[^\]]*\]\(([^)]+)\)/g, '<img src="$1" style="max-width:100%;height:auto;margin:12px 0;display:block;border-radius:4px;">');
+  t = t.replace(/!\[[^\]]*\]\(([^)]+)\)/g, '<img src="$1" width="600" style="width:100%;max-width:600px;height:auto;margin:12px 0;display:block;border-radius:4px;">');
   t = t.replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" style="color:#0645ad;">$1</a>');
   t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   t = t.replace(/\n/g, '<br>');
@@ -112,23 +112,35 @@ function build() {
   const url = `${BASE_URL}/${post.categories}/${y}-${m}-${d}-${slug}/`;
 
   const heroImg = post.image
-    ? `<img src="${post.image}" style="width:100%;height:auto;border-radius:6px;margin-bottom:16px;">`
+    ? `<img src="${post.image}" width="600" style="width:100%;max-width:600px;height:auto;border-radius:6px;margin-bottom:16px;display:block;">`
     : '';
 
+  // 用 table 置中而非 div+margin:auto，手機版信箱(Gmail app/原生郵件)對後者支援不穩定，
+  // 圖片也同時給 HTML width 屬性(600)+ CSS max-width:100%，避免手機只顯示原始像素寬度左半邊被裁掉。
   const html = `
-    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#222;">
-      ${heroImg}
-      <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.05em;">${escapeHtml(post.categories)}</div>
-      <h2 style="margin:4px 0 8px;">${escapeHtml(post.title)}</h2>
-      <p style="color:#888;font-size:13px;margin:0 0 20px;">${escapeHtml(post.date)}｜原標題：${escapeHtml(post.original_title)}</p>
-      <div style="font-size:15px;line-height:1.8;">${markdownToHtml(post.body)}</div>
-      <hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
-      <p style="font-size:13px;color:#888;">
-        <a href="${post.source}">閱讀日文原文</a> ・
-        <a href="${url}">在網站上開啟這篇</a> ・
-        <a href="${BASE_URL}">所有文章</a>
-      </p>
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
+      <tr>
+        <td align="center" style="padding:16px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;">
+            <tr>
+              <td style="font-family:sans-serif;color:#222;font-size:15px;line-height:1.8;">
+                ${heroImg}
+                <div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.05em;">${escapeHtml(post.categories)}</div>
+                <h2 style="margin:4px 0 8px;font-size:20px;">${escapeHtml(post.title)}</h2>
+                <p style="color:#888;font-size:13px;margin:0 0 20px;">${escapeHtml(post.date)}｜原標題：${escapeHtml(post.original_title)}</p>
+                <div>${markdownToHtml(post.body)}</div>
+                <hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
+                <p style="font-size:13px;color:#888;">
+                  <a href="${post.source}">閱讀日文原文</a> ・
+                  <a href="${url}">在網站上開啟這篇</a> ・
+                  <a href="${BASE_URL}">所有文章</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   `;
 
   fs.writeFileSync('email_body.html', html);
