@@ -2,3 +2,6 @@ _site/
 .jekyll-cache/
 .jekyll-metadata
 Gemfile.lock
+
+# 排程紀錄不上傳
+_logs/
