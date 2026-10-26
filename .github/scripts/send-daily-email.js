@@ -36,7 +36,7 @@ function escapeHtml(s) {
 function inline(text) {
   let t = escapeHtml(text);
   t = t.replace(/!\[[^\]]*\]\(([^)]+)\)/g, '<img src="$1" style="width:100%;max-width:600px;height:auto;margin:12px 0;display:block;border-radius:4px;">');
-  t = t.replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" style="color:#0645ad;">$1</a>');
+  t = t.replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" style="color:#A0492F;">$1</a>');
   t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   t = t.replace(/\n/g, '<br>');
   return t;
@@ -53,7 +53,7 @@ function markdownToHtml(md) {
       }
       if (block.startsWith('>')) {
         const quoted = lines.map((l) => l.replace(/^>\s?/, '')).join(' ');
-        return `<blockquote style="margin:0 0 16px;padding-left:12px;border-left:3px solid #ddd;color:#666;font-size:13px;">${inline(quoted)}</blockquote>`;
+        return `<blockquote style="margin:0 0 16px;padding-left:12px;border-left:3px solid #DCD2BF;color:#5F6B64;font-size:13px;">${inline(quoted)}</blockquote>`;
       }
       return `<p style="margin:0 0 16px;">${inline(block)}</p>`;
     })
@@ -128,21 +128,21 @@ function build() {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin:0;padding:0;background-color:#f2f2f2;" bgcolor="#f2f2f2">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f2f2f2;">
+<body style="margin:0;padding:0;background-color:#F6F1E7;" bgcolor="#F6F1E7">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6F1E7;">
 <tr><td align="center" style="padding:20px 10px;">
 <!--[if mso]>
 <table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td>
 <![endif]-->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;margin:0 auto;">
-<tr><td align="left" style="padding:24px;font-family:'Microsoft JhengHei','PingFang TC',sans-serif;font-size:15px;line-height:1.8;color:#222;text-align:left;">
+<tr><td align="left" style="padding:24px;font-family:'Microsoft JhengHei','PingFang TC',sans-serif;font-size:15px;line-height:1.8;color:#2B2622;text-align:left;">
 ${heroImg}
-<div style="color:#888;font-size:12px;text-transform:uppercase;letter-spacing:.05em;">${escapeHtml(post.categories)}</div>
+<div style="color:#5F6B64;font-size:12px;text-transform:uppercase;letter-spacing:.05em;">${escapeHtml(post.categories)}</div>
 <h2 style="margin:4px 0 8px;font-size:20px;">${escapeHtml(post.title)}</h2>
-<p style="color:#888;font-size:13px;margin:0 0 20px;">${escapeHtml(post.date)}｜原標題：${escapeHtml(post.original_title)}</p>
+<p style="color:#5F6B64;font-size:13px;margin:0 0 20px;">${escapeHtml(post.date)}｜原標題：${escapeHtml(post.original_title)}</p>
 ${markdownToHtml(post.body)}
-<hr style="margin:24px 0;border:none;border-top:1px solid #eee;">
-<p style="font-size:13px;color:#888;">
+<hr style="margin:24px 0;border:none;border-top:1px solid #DCD2BF;">
+<p style="font-size:13px;color:#5F6B64;">
   <a href="${post.source}">閱讀日文原文</a> ・
   <a href="${url}">在網站上開啟這篇</a> ・
   <a href="${BASE_URL}">所有文章</a>

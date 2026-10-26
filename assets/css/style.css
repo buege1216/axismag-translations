@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500&display=swap');
 
 :root {
-  --ink: #1a1a1a;
-  --paper: #fdfcf9;
-  --muted: #6b6b6b;
-  --line: #e5e2da;
-  --accent: #b3491f;
+  --ink: #2B2622;
+  --paper: #F6F1E7;
+  --muted: #5F6B64;
+  --line: #DCD2BF;
+  --accent: #A0492F;
   --max-width: 760px;
 }
 
@@ -79,7 +79,7 @@ img { max-width: 100%; height: auto; display: block; }
 .card .thumb {
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #eee;
+  background: #ECE3D3;
   border-radius: 2px;
   margin-bottom: 14px;
 }
@@ -148,7 +148,7 @@ img { max-width: 100%; height: auto; display: block; }
   width: 100%;
   max-height: 520px;
   overflow: hidden;
-  background: #eee;
+  background: #ECE3D3;
 }
 
 .article-hero img {
