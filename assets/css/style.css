@@ -495,3 +495,8 @@ img { max-width: 100%; height: auto; display: block; }
   color: var(--muted);
   border-top: 1px solid var(--line);
 }
+
+.article-body a {
+  color: var(--accent);
+  text-decoration: underline;
+}
