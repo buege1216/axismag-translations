@@ -5,3 +5,10 @@ Gemfile.lock
 
 # 排程紀錄不上傳
 _logs/
+
+# 金鑰與憑證（資安守則，2026-11-16 補）
+.env
+.env.*
+*.pem
+*.key
+service-account*.json
